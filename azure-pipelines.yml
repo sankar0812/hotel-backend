@@ -38,7 +38,7 @@ stages:
       displayName: Push an image
       inputs:
         command: push
-        containerRegistry: 'Docker Hub'  # Azure DevOps service connection for Docker Hub
+        containerRegistry: 'DockerHubConnection'  # Azure DevOps service connection for Docker Hub
         repository: $(imageName)
         tags: |
           $(tag)
