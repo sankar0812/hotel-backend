@@ -12,6 +12,9 @@ variables:
   tag: '$(Build.BuildId)'
   imageName: 'sankar0812/hotel-backend'  # Replace with your Docker Hub username and desired image name
 
+pool:
+  name: devops  # Set your default pool name here
+
 stages:
 - stage: Build
   displayName: Build image
@@ -20,6 +23,7 @@ stages:
     displayName: Build
     pool:
       vmImage: ubuntu-latest
+      name: devops  # Specify the agent name for this job
     steps:
     - task: Docker@2
       displayName: Build an image
@@ -35,6 +39,7 @@ stages:
     displayName: Push to Docker Hub
     pool:
       vmImage: ubuntu-latest
+      name: devops-agent  # Specify the agent name for this job
     steps:
     - task: Docker@2
       displayName: Push an image
