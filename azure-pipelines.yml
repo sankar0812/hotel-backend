@@ -19,7 +19,7 @@ stages:
   - job: Build
     displayName: Build
     pool:
-      vmImage: ubuntu-latest
+      vmImage: devops
     steps:
     - task: Docker@2
       displayName: Build an image
@@ -34,7 +34,7 @@ stages:
   - job: Push
     displayName: Push to Docker Hub
     pool:
-      vmImage: ubuntu-latest
+      vmImage: devops
     steps:
     - task: Docker@2
       displayName: Push an image
