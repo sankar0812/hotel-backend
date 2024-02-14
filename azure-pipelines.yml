@@ -13,7 +13,7 @@ variables:
   imageName: 'sankar0812/hotel-backend'  # Replace with your Docker Hub username and desired image name
 
 pool:
-  name: devops  # Set your default pool name here
+  name: Default  # Set your default pool name here
 
 stages:
 - stage: Build
