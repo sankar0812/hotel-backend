@@ -10,6 +10,7 @@ resources:
 
 variables:
   tag: '$(Build.BuildId)'
+  imageName: 'your-dockerhub-username/your-image-name'  # Replace with your Docker Hub username and desired image name
 
 stages:
 - stage: Build
@@ -25,5 +26,19 @@ stages:
       inputs:
         command: build
         dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
+        tags: |
+          $(tag)
+
+  - job: Push
+    displayName: Push to Docker Hub
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: Docker@2
+      displayName: Push an image
+      inputs:
+        command: push
+        containerRegistry: 'DockerHubConnection'  # Azure DevOps service connection for Docker Hub
+        repository: $(imageName)
         tags: |
           $(tag)
