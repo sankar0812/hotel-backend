@@ -1,0 +1,64 @@
+name: Deploy React Application
+
+on:
+  push:
+    branches:
+      - devops
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REPOSITORY: github-action
+  CONTAINER_NAME: git-action-container
+  ECR_REGISTRY: 273521728595.dkr.ecr.ap-south-1.amazonaws.com
+  IMAGE_TAG: ${{ github.sha }}
+  MAX_IMAGES_TO_KEEP: 2
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+     - name: Checkout
+       uses: actions/checkout@v3
+
+     - name: Configure AWS credentials
+       uses: aws-actions/configure-aws-credentials@v1
+       with:
+         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}          
+         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
+         aws-region: ${{ env.AWS_REGION }}
+
+     - name: Login to Amazon ECR
+       id: login-ecr
+       uses: aws-actions/amazon-ecr-login@v1
+
+     - name: Delete old ECR images
+       run: |
+          IMAGE_LIST=$(aws ecr list-images --region ${{ env.AWS_REGION }} --repository-name ${{ env.ECR_REPOSITORY }} --query 'imageIds[*].[imageDigest,imagePushedAt]' --output json | jq -r 'sort_by(.[1])[:-${{ env.MAX_IMAGES_TO_KEEP }}] | .[] | .[0]')
+          for IMAGE_ID in $IMAGE_LIST; do
+            aws ecr batch-delete-image --region ${{ env.AWS_REGION }} --repository-name ${{ env.ECR_REPOSITORY }} --image-ids imageDigest=$IMAGE_ID
+          done
+     - name: Build, tag, and push image to Amazon ECR
+       id: build-image
+       run: |
+          npm install @ant-design/cssinjs
+          docker build --build-arg NODE_ENV=production --build-arg API_BASE_URL=https://api.sarasinternational.ideauxbill.in/ -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.IMAGE_TAG }} .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.IMAGE_TAG }}
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:${{ env.IMAGE_TAG }}" >> $GITHUB_ENV
+  deploy:
+    needs: build
+    runs-on: devops
+    steps:
+      - name: Delete old Docker container
+        run: |
+          docker stop ${{ env.CONTAINER_NAME }} || true
+          docker rm ${{ env.CONTAINER_NAME }} || true
+      - name: Delete old Docker image
+        run: |
+          docker image prune -af || true
+      - name: Pull the Docker image from Amazon ECR
+        run: |
+          docker pull "${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"
+      - name: Deploy the Docker container on EC2
+        run: |
+          docker run -d --name ${{ env.CONTAINER_NAME }} -p 3000:8080 "${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"
+
