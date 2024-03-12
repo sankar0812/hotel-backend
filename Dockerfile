@@ -18,7 +18,7 @@ CMD ["java", "-jar", "target/hotel-0.0.1-SNAPSHOT.jar"]
 
 # WORKDIR /app
 
-# # Copy only the POM file first to leverage Docker caching
+# # Copy only the POM file first to leverage Docker 
 # COPY pom.xml .
 
 # # Download the dependencies and build the application
