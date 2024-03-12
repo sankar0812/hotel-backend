@@ -1,15 +1,15 @@
-name: Deploy React Application
+name: Development
 
 on:
   push:
     branches:
-      - devops
+      - dev
 
 env:
   AWS_REGION: ap-south-1
-  ECR_REPOSITORY: github-action
-  CONTAINER_NAME: git-action-container
-  ECR_REGISTRY: 273521728595.dkr.ecr.ap-south-1.amazonaws.com
+  ECR_REPOSITORY: ideaux-dev
+  CONTAINER_NAME: hotel-container
+  ECR_REGISTRY: public.ecr.aws/k0s0u8n2
   IMAGE_TAG: ${{ github.sha }}
   MAX_IMAGES_TO_KEEP: 2
 
@@ -41,12 +41,12 @@ jobs:
        id: build-image
        run: |
           npm install @ant-design/cssinjs
-          docker build --build-arg NODE_ENV=production --build-arg API_BASE_URL=https://api.sarasinternational.ideauxbill.in/ -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.IMAGE_TAG }} .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.IMAGE_TAG }} .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.IMAGE_TAG }}
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:${{ env.IMAGE_TAG }}" >> $GITHUB_ENV
   deploy:
     needs: build
-    runs-on: devops
+    runs-on: aws-devops
     steps:
       - name: Delete old Docker container
         run: |
@@ -61,4 +61,3 @@ jobs:
       - name: Deploy the Docker container on EC2
         run: |
           docker run -d --name ${{ env.CONTAINER_NAME }} -p 3000:8080 "${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"
-
