@@ -9,7 +9,7 @@ env:
   AWS_REGION: ap-south-1
   ECR_REPOSITORY: ideaux-dev
   CONTAINER_NAME: hotel-container
-  ECR_REGISTRY: public.ecr.aws/k0s0u8n2
+  ECR_REGISTRY: 323580481469.dkr.ecr.ap-south-1.amazonaws.com
   IMAGE_TAG: ${{ github.sha }}
   MAX_IMAGES_TO_KEEP: 2
 
